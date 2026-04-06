@@ -3,293 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSandCode — песочница кода</title>
+    <title>TSandCode ❄️ — зимний редактор кода</title>
+    <!-- Подсветка CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none; /* чтобы не выделялось при перетаскивании */
         }
         body {
-            background: #0a0c10;
+            background: radial-gradient(circle at 10% 20%, #0b1420, #03060c);
+            min-height: 100vh;
             color: #e0e0e0;
             font-family: 'Segoe UI', 'JetBrains Mono', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+        /* снежинки */
+        .snow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .snow i {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+        /* основной интерфейс */
+        .app {
+            position: relative;
+            z-index: 10;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            backdrop-filter: blur(2px);
         }
+        /* шапка с анимацией */
         .toolbar {
-            background: #131720;
-            padding: 12px 20px;
+            background: rgba(20, 30, 45, 0.75);
+            backdrop-filter: blur(12px);
+            padding: 14px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-            border-bottom: 1px solid #2c313c;
+            gap: 16px;
+            border-bottom: 1px solid rgba(100, 150, 200, 0.3);
+            animation: slideDown 0.5s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         .logo h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #e0e0e0, #b0b0b0);
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #ffffff, #80b0ff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            letter-spacing: 1px;
         }
         .logo p {
             font-size: 0.7rem;
-            color: #6c727f;
-        }
-        .controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        select, button {
-            background: #0f1217;
-            border: 1px solid #2c313c;
-            color: #e0e0e0;
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.85rem;
-        }
-        button {
-            background: #b0b0b0;
-            color: #0a0c10;
-            font-weight: bold;
-            border: none;
-        }
-        button:hover {
-            background: #ffffff;
+            color: #8ab3cf;
         }
         .github-link {
-            background: #0f1217;
-            padding: 6px 14px;
+            background: rgba(10, 20, 35, 0.8);
+            padding: 8px 18px;
             border-radius: 40px;
             text-decoration: none;
-            color: #b0b0b0;
-            border: 1px solid #2c313c;
-            font-size: 0.85rem;
+            color: #b0d4ff;
+            border: 1px solid rgba(100, 150, 200, 0.5);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
-        .editor-container {
+        .github-link:hover {
+            background: #80b0ff20;
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(128,176,255,0.4);
+        }
+        /* контейнер с изменяемыми панелями */
+        .panels-container {
             flex: 1;
             display: flex;
-            gap: 1px;
-            background: #2c313c;
             overflow: hidden;
-        }
-        .panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #1a1e26;
-            overflow: hidden;
-        }
-        .panel-header {
-            background: #131720;
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border-bottom: 1px solid #2c313c;
-        }
-        textarea {
-            flex: 1;
-            background: #1a1e26;
-            color: #e0e0e0;
-            border: none;
             padding: 12px;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 14px;
-            resize: none;
-            outline: none;
-            line-height: 1.5;
+            gap: 12px;
         }
-        .output-panel {
-            flex: 1;
+        /* левая группа (редакторы) */
+        .editors-group {
+            flex: 2;
             display: flex;
             flex-direction: column;
-            background: #1a1e26;
+            gap: 12px;
+            min-width: 250px;
+        }
+        .editor-card {
+            flex: 1;
+            background: rgba(15, 25, 35, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            border: 1px solid rgba(100, 150, 200, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+        }
+        .editor-card:hover {
+            border-color: #80b0ff;
+            box-shadow: 0 0 15px rgba(128,176,255,0.2);
+        }
+        .card-header {
+            padding: 10px 16px;
+            background: rgba(10, 20, 35, 0.6);
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(100, 150, 200, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-header span {
+            font-size: 1.2rem;
+        }
+        .CodeMirror {
+            height: 100% !important;
+            background: rgba(10, 20, 35, 0.4) !important;
+            font-size: 14px;
+        }
+        /* правая панель (вывод) — широкая */
+        .output-group {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 25, 35, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            border: 1px solid rgba(100, 150, 200, 0.3);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            min-width: 400px;
+        }
+        .output-group:hover {
+            border-color: #80b0ff;
+        }
+        .output-header {
+            padding: 10px 16px;
+            background: rgba(10, 20, 35, 0.6);
+            font-weight: bold;
+            border-bottom: 1px solid rgba(100, 150, 200, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         iframe {
             flex: 1;
             border: none;
             background: white;
+            border-radius: 0 0 24px 24px;
         }
         footer {
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             font-size: 0.7rem;
-            color: #6c727f;
-            border-top: 1px solid #2c313c;
-            background: #131720;
+            color: #6c8eb0;
+            border-top: 1px solid rgba(100, 150, 200, 0.2);
+            background: rgba(10, 20, 35, 0.5);
         }
-        @media (max-width: 800px) {
-            .editor-container {
+        @media (max-width: 900px) {
+            .panels-container {
                 flex-direction: column;
             }
-            .panel {
-                min-height: 30vh;
+            .editors-group {
+                flex: 1;
+            }
+            .output-group {
+                flex: 2;
+                min-width: auto;
             }
         }
     </style>
 </head>
 <body>
-<div class="toolbar">
-    <div class="logo">
-        <h1>⚡ TSandCode</h1>
-        <p>песочница кода — html / css / js</p>
-    </div>
-    <div class="controls">
-        <select id="modeSelect">
-            <option value="split">Раздельный режим (HTML/CSS/JS)</option>
-            <option value="unified">Единый режим (всё в одном окне)</option>
-        </select>
-        <button id="runBtn">▶ Запустить</button>
+<div class="snow" id="snow"></div>
+<div class="app">
+    <div class="toolbar">
+        <div class="logo">
+            <h1>❄️ TSandCode</h1>
+            <p>зимняя песочница — html / css / js</p>
+        </div>
         <a href="https://github.com/web-pentest" target="_blank" class="github-link">🐙 web-pentest</a>
     </div>
+
+    <div class="panels-container">
+        <div class="editors-group">
+            <div class="editor-card">
+                <div class="card-header"><span>📄</span> HTML</div>
+                <textarea id="htmlEditor"></textarea>
+            </div>
+            <div class="editor-card">
+                <div class="card-header"><span>🎨</span> CSS</div>
+                <textarea id="cssEditor"></textarea>
+            </div>
+            <div class="editor-card">
+                <div class="card-header"><span>⚡</span> JavaScript</div>
+                <textarea id="jsEditor"></textarea>
+            </div>
+        </div>
+        <div class="output-group">
+            <div class="output-header">
+                <span>🖥️ Результат</span>
+                <button id="runBtn" style="background: #80b0ff20; border: 1px solid #80b0ff; border-radius: 20px; padding: 4px 12px; cursor: pointer; color: white;">▶ Запустить</button>
+            </div>
+            <iframe id="output"></iframe>
+        </div>
+    </div>
+    <footer>🔥 TSandCode — создай свой код в зимней атмосфере | ❄️ подсветка синтаксиса • автозапуск • регулируемые панели</footer>
 </div>
-<div id="editorContainer" class="editor-container"></div>
-<footer>🔥 TSandCode — создай свой код прямо в браузере | 🐙 <a href="https://github.com/web-pentest" target="_blank" style="color:#b0b0b0;">github.com/web-pentest</a></footer>
 
 <script>
-    let currentMode = 'split';
+    // инициализация редакторов
+    const htmlEditor = CodeMirror.fromTextArea(document.getElementById('htmlEditor'), {
+        lineNumbers: true,
+        mode: "htmlmixed",
+        theme: "material-darker",
+        lineWrapping: true
+    });
+    const cssEditor = CodeMirror.fromTextArea(document.getElementById('cssEditor'), {
+        lineNumbers: true,
+        mode: "css",
+        theme: "material-darker",
+        lineWrapping: true
+    });
+    const jsEditor = CodeMirror.fromTextArea(document.getElementById('jsEditor'), {
+        lineNumbers: true,
+        mode: "javascript",
+        theme: "material-darker",
+        lineWrapping: true
+    });
     
-    const container = document.getElementById('editorContainer');
-    const modeSelect = document.getElementById('modeSelect');
+    const output = document.getElementById('output');
     const runBtn = document.getElementById('runBtn');
     
-    // Сохранение кода
+    // загрузка сохранённого кода
+    function loadSaved() {
+        htmlEditor.setValue(localStorage.getItem('tsandcode_html') || '<h1>❄️ Добро пожаловать в TSandCode!</h1>\n<p>Пиши код в левых панелях →</p>');
+        cssEditor.setValue(localStorage.getItem('tsandcode_css') || 'body { font-family: system-ui; padding: 20px; background: #0b1420; color: white; }\nh1 { color: #80b0ff; }');
+        jsEditor.setValue(localStorage.getItem('tsandcode_js') || 'console.log("TSandCode готов!");\ndocument.querySelector("h1").style.color = "#b0d4ff";');
+    }
+    
     function saveCode() {
-        if (currentMode === 'split') {
-            localStorage.setItem('tsandcode_html', document.getElementById('htmlCode')?.value || '');
-            localStorage.setItem('tsandcode_css', document.getElementById('cssCode')?.value || '');
-            localStorage.setItem('tsandcode_js', document.getElementById('jsCode')?.value || '');
-        } else {
-            localStorage.setItem('tsandcode_unified', document.getElementById('unifiedCode')?.value || '');
-        }
-        localStorage.setItem('tsandcode_mode', currentMode);
+        localStorage.setItem('tsandcode_html', htmlEditor.getValue());
+        localStorage.setItem('tsandcode_css', cssEditor.getValue());
+        localStorage.setItem('tsandcode_js', jsEditor.getValue());
     }
     
-    // Загрузка кода
-    function getDefaultSplit() {
-        return {
-            html: '<h1>✨ Добро пожаловать в TSandCode!</h1>\n<p>Пиши код в панелях →</p>',
-            css: 'body { font-family: system-ui; padding: 20px; background: #1a1e26; color: white; }\nh1 { color: #b0b0b0; }',
-            js: 'console.log("TSandCode готов к работе!");\ndocument.querySelector("h1").style.color = "#89b4fa";'
-        };
-    }
-    
-    function getDefaultUnified() {
-        return `<!DOCTYPE html>
+    function run() {
+        const html = htmlEditor.getValue();
+        const css = cssEditor.getValue();
+        const js = jsEditor.getValue();
+        const doc = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>TSandCode</title>
-    <style>
-        body { font-family: system-ui; padding: 20px; background: #1a1e26; color: white; }
-        h1 { color: #b0b0b0; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>${css}</style>
 </head>
 <body>
-    <h1>✨ Добро пожаловать в TSandCode!</h1>
-    <p>Пиши код в одном окне →</p>
-    <script>
-        console.log("TSandCode готов к работе!");
-        document.querySelector("h1").style.color = "#89b4fa";
-    <\/script>
+    ${html}
+    <script>${js}<\/script>
 </body>
 </html>`;
+        const blob = new Blob([doc], { type: 'text/html' });
+        output.src = URL.createObjectURL(blob);
+        saveCode();
     }
     
-    function loadCode() {
-        const savedMode = localStorage.getItem('tsandcode_mode');
-        if (savedMode === 'split' || savedMode === 'unified') currentMode = savedMode;
-        modeSelect.value = currentMode;
-        
-        if (currentMode === 'split') {
-            const def = getDefaultSplit();
-            document.getElementById('htmlCode').value = localStorage.getItem('tsandcode_html') || def.html;
-            document.getElementById('cssCode').value = localStorage.getItem('tsandcode_css') || def.css;
-            document.getElementById('jsCode').value = localStorage.getItem('tsandcode_js') || def.js;
-        } else {
-            document.getElementById('unifiedCode').value = localStorage.getItem('tsandcode_unified') || getDefaultUnified();
+    // автообновление с задержкой
+    let timeout;
+    function autoRun() {
+        clearTimeout(timeout);
+        timeout = setTimeout(run, 600);
+    }
+    
+    htmlEditor.on('changes', autoRun);
+    cssEditor.on('changes', autoRun);
+    jsEditor.on('changes', autoRun);
+    runBtn.onclick = run;
+    
+    loadSaved();
+    run();
+    
+    // снежинки
+    function createSnow() {
+        const snowDiv = document.getElementById('snow');
+        for (let i = 0; i < 90; i++) {
+            const flake = document.createElement('i');
+            flake.style.left = Math.random() * 100 + '%';
+            flake.style.width = flake.style.height = Math.random() * 5 + 2 + 'px';
+            flake.style.animationDuration = Math.random() * 4 + 3 + 's';
+            flake.style.animationDelay = Math.random() * 5 + 's';
+            snowDiv.appendChild(flake);
         }
     }
-    
-    // Рендер редакторов
-    function renderSplit() {
-        container.innerHTML = `
-            <div class="panel"><div class="panel-header">📄 HTML</div><textarea id="htmlCode" placeholder="<h1>Привет, мир!</h1>"></textarea></div>
-            <div class="panel"><div class="panel-header">🎨 CSS</div><textarea id="cssCode" placeholder="body { background: #f0f0f0; }"></textarea></div>
-            <div class="panel"><div class="panel-header">⚡ JavaScript</div><textarea id="jsCode" placeholder="console.log('Привет!');"></textarea></div>
-            <div class="output-panel"><div class="panel-header">🖥️ Результат</div><iframe id="output"></iframe></div>
-        `;
-    }
-    
-    function renderUnified() {
-        container.innerHTML = `
-            <div class="panel"><div class="panel-header">📄 Единый код (HTML/CSS/JS)</div><textarea id="unifiedCode" style="font-family: monospace; font-size: 14px;"></textarea></div>
-            <div class="output-panel"><div class="panel-header">🖥️ Результат</div><iframe id="output"></iframe></div>
-        `;
-    }
-    
-    function render() {
-        if (currentMode === 'split') {
-            renderSplit();
-        } else {
-            renderUnified();
-        }
-        loadCode();
-        attachRun();
-    }
-    
-    function attachRun() {
-        const output = document.getElementById('output');
-        
-        function run() {
-            if (currentMode === 'split') {
-                const html = document.getElementById('htmlCode').value;
-                const css = document.getElementById('cssCode').value;
-                const js = document.getElementById('jsCode').value;
-                const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`;
-                const blob = new Blob([doc], { type: 'text/html' });
-                output.src = URL.createObjectURL(blob);
-            } else {
-                const code = document.getElementById('unifiedCode').value;
-                const blob = new Blob([code], { type: 'text/html' });
-                output.src = URL.createObjectURL(blob);
-            }
-            saveCode();
-        }
-        
-        runBtn.onclick = run;
-        
-        // Автообновление
-        let timeout;
-        function autoRun() {
-            clearTimeout(timeout);
-            timeout = setTimeout(run, 500);
-        }
-        
-        if (currentMode === 'split') {
-            document.getElementById('htmlCode').addEventListener('input', autoRun);
-            document.getElementById('cssCode').addEventListener('input', autoRun);
-            document.getElementById('jsCode').addEventListener('input', autoRun);
-        } else {
-            document.getElementById('unifiedCode').addEventListener('input', autoRun);
-        }
-        
-        run();
-    }
-    
-    modeSelect.addEventListener('change', () => {
-        currentMode = modeSelect.value;
-        render();
-    });
-    
-    render();
+    createSnow();
 </script>
 </body>
 </html>
