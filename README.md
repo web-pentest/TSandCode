@@ -54,7 +54,7 @@ cd TSandCode
 ## 🧑‍💻 Автор
 
 **web-pentest** — [GitHub](https://github.com/web-pentest)  
-🐙 Другие проекты: [DarkVPN](https://github.com/web-pentest/DarkVPN), [Arch-Neofetch](https://github.com/web-pentest/Arch-Neofetch) и другие.
+🐙 Другие проекты: [DarkVPN](https://github.com/web-pentest/DarkVPN), [Arch-Neofetch](https://web-pentest.github.io/Arch-Neofetch/) и другие.
 
 ## ❄️ Зимняя атмосфера
 
