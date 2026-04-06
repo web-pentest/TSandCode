@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSandCode — песочница кода</title>
+    <title>TSandCode — умная песочница кода</title>
+    <!-- Подсветка синтаксиса CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -21,24 +29,48 @@
         }
         .toolbar {
             background: #131720;
-            padding: 12px 24px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #2c313c;
             flex-wrap: wrap;
             gap: 12px;
+            border-bottom: 1px solid #2c313c;
         }
         .logo h1 {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             background: linear-gradient(135deg, #e0e0e0, #b0b0b0);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
         .logo p {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #6c727f;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        select, button {
+            background: #0f1217;
+            border: 1px solid #2c313c;
+            color: #e0e0e0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button {
+            background: #b0b0b0;
+            color: #0a0c10;
+            font-weight: bold;
+            border: none;
+        }
+        button:hover {
+            background: #ffffff;
         }
         .github-link {
             background: #0f1217;
@@ -47,58 +79,32 @@
             text-decoration: none;
             color: #b0b0b0;
             border: 1px solid #2c313c;
-            font-size: 0.85rem;
-            transition: 0.2s;
-        }
-        .github-link:hover {
-            background: #2c313c;
-            color: white;
-        }
-        .run-btn {
-            background: #b0b0b0;
-            color: #0a0c10;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.2s;
-        }
-        .run-btn:hover {
-            background: #ffffff;
-            transform: scale(1.02);
+            font-size: 0.8rem;
         }
         .editor-container {
-            display: flex;
             flex: 1;
+            display: flex;
             gap: 1px;
             background: #2c313c;
+            overflow: hidden;
         }
-        .editor-panel {
+        .panel {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: #1a1e26;
+            overflow: hidden;
         }
         .panel-header {
             background: #131720;
-            padding: 8px 12px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            font-size: 0.75rem;
             font-weight: bold;
             border-bottom: 1px solid #2c313c;
         }
-        textarea {
-            flex: 1;
-            background: #1a1e26;
-            color: #e0e0e0;
-            border: none;
-            padding: 12px;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        .CodeMirror {
+            height: 100% !important;
             font-size: 13px;
-            resize: none;
-            outline: none;
-            line-height: 1.5;
         }
         .output-panel {
             flex: 1;
@@ -113,8 +119,8 @@
         }
         footer {
             text-align: center;
-            padding: 8px;
-            font-size: 0.7rem;
+            padding: 6px;
+            font-size: 0.65rem;
             color: #6c727f;
             border-top: 1px solid #2c313c;
             background: #131720;
@@ -123,8 +129,8 @@
             .editor-container {
                 flex-direction: column;
             }
-            .editor-panel {
-                height: 25vh;
+            .panel {
+                height: 30vh;
             }
         }
     </style>
@@ -135,86 +141,165 @@
         <h1>⚡ TSandCode</h1>
         <p>песочница кода — html / css / js</p>
     </div>
-    <div>
+    <div class="controls">
+        <select id="modeSelect">
+            <option value="split">Раздельный режим (HTML/CSS/JS)</option>
+            <option value="unified">Единый режим (всё в одном окне)</option>
+        </select>
+        <button id="runBtn">▶ Запустить</button>
         <a href="https://github.com/web-pentest" target="_blank" class="github-link">🐙 web-pentest</a>
-        <button class="run-btn" id="runBtn">▶ Запустить</button>
     </div>
 </div>
-<div class="editor-container">
-    <div class="editor-panel">
-        <div class="panel-header">📄 HTML</div>
-        <textarea id="htmlCode" placeholder="<h1>Привет, мир!</h1>"></textarea>
-    </div>
-    <div class="editor-panel">
-        <div class="panel-header">🎨 CSS</div>
-        <textarea id="cssCode" placeholder="body { background: #f0f0f0; }"></textarea>
-    </div>
-    <div class="editor-panel">
-        <div class="panel-header">⚡ JavaScript</div>
-        <textarea id="jsCode" placeholder="console.log('Привет!');"></textarea>
-    </div>
-    <div class="output-panel">
-        <div class="panel-header">🖥️ Результат</div>
-        <iframe id="output"></iframe>
-    </div>
-</div>
+<div id="editorContainer" class="editor-container"></div>
 <footer>
     🔥 TSandCode — создай свой код прямо в браузере | 🐙 <a href="https://github.com/web-pentest" target="_blank" style="color:#b0b0b0;">github.com/web-pentest</a>
 </footer>
 
 <script>
-    const htmlEditor = document.getElementById('htmlCode');
-    const cssEditor = document.getElementById('cssCode');
-    const jsEditor = document.getElementById('jsCode');
-    const output = document.getElementById('output');
+    // Состояние
+    let currentMode = 'split';
+    let editors = {};
+    let unifiedEditor = null;
+    
+    // DOM
+    const container = document.getElementById('editorContainer');
+    const modeSelect = document.getElementById('modeSelect');
     const runBtn = document.getElementById('runBtn');
-
+    
+    // Загрузка/сохранение
     function saveCode() {
-        localStorage.setItem('tsandcode_html', htmlEditor.value);
-        localStorage.setItem('tsandcode_css', cssEditor.value);
-        localStorage.setItem('tsandcode_js', jsEditor.value);
+        if (currentMode === 'split') {
+            localStorage.setItem('tsandcode_html', editors.html?.getValue() || '');
+            localStorage.setItem('tsandcode_css', editors.css?.getValue() || '');
+            localStorage.setItem('tsandcode_js', editors.js?.getValue() || '');
+        } else {
+            localStorage.setItem('tsandcode_unified', unifiedEditor?.getValue() || '');
+        }
+        localStorage.setItem('tsandcode_mode', currentMode);
     }
-
-    function loadCode() {
-        htmlEditor.value = localStorage.getItem('tsandcode_html') || '<h1>✨ Добро пожаловать в TSandCode!</h1>\n<p>Пиши код в левых панелях →</p>';
-        cssEditor.value = localStorage.getItem('tsandcode_css') || 'body { font-family: system-ui; padding: 20px; }\nh1 { color: #b0b0b0; }';
-        jsEditor.value = localStorage.getItem('tsandcode_js') || 'console.log("TSandCode готов к работе!");\ndocument.querySelector("h1").style.color = "#89b4fa";';
-    }
-
-    function run() {
-        const html = htmlEditor.value;
-        const css = cssEditor.value;
-        const js = jsEditor.value;
-        const fullDoc = `<!DOCTYPE html>
+    
+    function getDefaultCode(mode) {
+        if (mode === 'split') {
+            return {
+                html: '<h1>✨ Добро пожаловать в TSandCode!</h1>\n<p>Пиши код в панелях →</p>',
+                css: 'body { font-family: system-ui; padding: 20px; }\nh1 { color: #b0b0b0; }',
+                js: 'console.log("TSandCode готов к работе!");\ndocument.querySelector("h1").style.color = "#89b4fa";'
+            };
+        } else {
+            return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>${css}</style>
+    <title>TSandCode</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; }
+        h1 { color: #b0b0b0; }
+    </style>
 </head>
 <body>
-    ${html}
-    <script>${js}<\/script>
+    <h1>✨ Добро пожаловать в TSandCode!</h1>
+    <p>Пиши код в одном окне →</p>
+    <script>
+        console.log("TSandCode готов к работе!");
+        document.querySelector("h1").style.color = "#89b4fa";
+    <\/script>
 </body>
 </html>`;
-        const blob = new Blob([fullDoc], { type: 'text/html' });
-        output.src = URL.createObjectURL(blob);
-        saveCode();
-    }
-
-    let timeout;
-    function autoRun() {
-        clearTimeout(timeout);
-        timeout = setTimeout(run, 500);
+        }
     }
     
-    htmlEditor.addEventListener('input', autoRun);
-    cssEditor.addEventListener('input', autoRun);
-    jsEditor.addEventListener('input', autoRun);
-    runBtn.addEventListener('click', run);
+    function loadCode() {
+        const savedMode = localStorage.getItem('tsandcode_mode');
+        if (savedMode === 'split' || savedMode === 'unified') currentMode = savedMode;
+        modeSelect.value = currentMode;
+        
+        if (currentMode === 'split') {
+            const defaultCodes = getDefaultCode('split');
+            editors.html.setValue(localStorage.getItem('tsandcode_html') || defaultCodes.html);
+            editors.css.setValue(localStorage.getItem('tsandcode_css') || defaultCodes.css);
+            editors.js.setValue(localStorage.getItem('tsandcode_js') || defaultCodes.js);
+        } else {
+            const defaultUnified = getDefaultCode('unified');
+            unifiedEditor.setValue(localStorage.getItem('tsandcode_unified') || defaultUnified);
+        }
+    }
     
-    loadCode();
-    run();
+    // Рендер редакторов
+    function renderSplitMode() {
+        container.innerHTML = `
+            <div class="panel"><div class="panel-header">📄 HTML</div><textarea id="htmlEditor"></textarea></div>
+            <div class="panel"><div class="panel-header">🎨 CSS</div><textarea id="cssEditor"></textarea></div>
+            <div class="panel"><div class="panel-header">⚡ JavaScript</div><textarea id="jsEditor"></textarea></div>
+            <div class="output-panel"><div class="panel-header">🖥️ Результат</div><iframe id="output"></iframe></div>
+        `;
+        editors.html = CodeMirror.fromTextArea(document.getElementById('htmlEditor'), {
+            lineNumbers: true, mode: "htmlmixed", theme: "material-darker", lineWrapping: true
+        });
+        editors.css = CodeMirror.fromTextArea(document.getElementById('cssEditor'), {
+            lineNumbers: true, mode: "css", theme: "material-darker", lineWrapping: true
+        });
+        editors.js = CodeMirror.fromTextArea(document.getElementById('jsEditor'), {
+            lineNumbers: true, mode: "javascript", theme: "material-darker", lineWrapping: true
+        });
+    }
+    
+    function renderUnifiedMode() {
+        container.innerHTML = `
+            <div class="panel"><div class="panel-header">📄 Единый код (HTML/CSS/JS)</div><textarea id="unifiedEditor"></textarea></div>
+            <div class="output-panel"><div class="panel-header">🖥️ Результат</div><iframe id="output"></iframe></div>
+        `;
+        unifiedEditor = CodeMirror.fromTextArea(document.getElementById('unifiedEditor'), {
+            lineNumbers: true, mode: "htmlmixed", theme: "material-darker", lineWinding: true
+        });
+    }
+    
+    function render() {
+        if (currentMode === 'split') {
+            renderSplitMode();
+        } else {
+            renderUnifiedMode();
+        }
+        loadCode();
+        attachRunEvent();
+    }
+    
+    function attachRunEvent() {
+        const output = document.getElementById('output');
+        const run = () => {
+            if (currentMode === 'split') {
+                const html = editors.html.getValue();
+                const css = editors.css.getValue();
+                const js = editors.js.getValue();
+                const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`;
+                const blob = new Blob([doc], { type: 'text/html' });
+                output.src = URL.createObjectURL(blob);
+            } else {
+                const code = unifiedEditor.getValue();
+                const blob = new Blob([code], { type: 'text/html' });
+                output.src = URL.createObjectURL(blob);
+            }
+            saveCode();
+        };
+        runBtn.onclick = run;
+        // авторан с задержкой
+        let timeout;
+        const auto = () => { clearTimeout(timeout); timeout = setTimeout(run, 700); };
+        if (currentMode === 'split') {
+            editors.html.on('changes', auto);
+            editors.css.on('changes', auto);
+            editors.js.on('changes', auto);
+        } else {
+            unifiedEditor.on('changes', auto);
+        }
+        run();
+    }
+    
+    modeSelect.addEventListener('change', () => {
+        currentMode = modeSelect.value;
+        render();
+    });
+    
+    render();
 </script>
 </body>
 </html>
