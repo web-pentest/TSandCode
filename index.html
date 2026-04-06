@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSandCode — умная песочница кода</title>
-    <!-- Подсветка синтаксиса CodeMirror -->
+    <title>TSandCode ❄️ — зимняя песочница кода</title>
+    <!-- CodeMirror для подсветки -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -19,34 +19,62 @@
             box-sizing: border-box;
         }
         body {
-            background: #0a0c10;
+            background: linear-gradient(135deg, #0a1a2e, #06101c);
+            min-height: 100vh;
             color: #e0e0e0;
             font-family: 'Segoe UI', 'JetBrains Mono', monospace;
+            position: relative;
+            overflow-x: hidden;
+        }
+        /* снежинки */
+        .snow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .snow i {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+        .app {
+            position: relative;
+            z-index: 10;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            backdrop-filter: blur(2px);
         }
         .toolbar {
-            background: #131720;
-            padding: 10px 20px;
+            background: rgba(20, 30, 45, 0.7);
+            backdrop-filter: blur(12px);
+            padding: 12px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
-            border-bottom: 1px solid #2c313c;
+            border-bottom: 1px solid rgba(100, 150, 200, 0.3);
         }
         .logo h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #e0e0e0, #b0b0b0);
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #ffffff, #80b0ff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
         .logo p {
-            font-size: 0.65rem;
-            color: #6c727f;
+            font-size: 0.7rem;
+            color: #8ab3cf;
         }
         .controls {
             display: flex;
@@ -55,62 +83,74 @@
             flex-wrap: wrap;
         }
         select, button {
-            background: #0f1217;
-            border: 1px solid #2c313c;
-            color: #e0e0e0;
-            padding: 6px 12px;
-            border-radius: 20px;
+            background: rgba(10, 20, 35, 0.8);
+            border: 1px solid rgba(100, 150, 200, 0.5);
+            color: #d0e4ff;
+            padding: 8px 16px;
+            border-radius: 40px;
             cursor: pointer;
             font-family: inherit;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
         }
         button {
-            background: #b0b0b0;
-            color: #0a0c10;
-            font-weight: bold;
-            border: none;
+            background: rgba(100, 150, 200, 0.2);
+            border-color: #80b0ff;
+            color: white;
         }
-        button:hover {
-            background: #ffffff;
+        button:hover, select:hover {
+            background: rgba(100, 150, 200, 0.4);
+            transform: scale(1.02);
+            box-shadow: 0 0 12px rgba(128,176,255,0.3);
         }
         .github-link {
-            background: #0f1217;
+            background: rgba(10, 20, 35, 0.8);
             padding: 6px 14px;
             border-radius: 40px;
             text-decoration: none;
-            color: #b0b0b0;
-            border: 1px solid #2c313c;
-            font-size: 0.8rem;
+            color: #b0d4ff;
+            border: 1px solid rgba(100, 150, 200, 0.5);
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .github-link:hover {
+            background: #80b0ff20;
+            color: white;
         }
         .editor-container {
             flex: 1;
             display: flex;
             gap: 1px;
-            background: #2c313c;
+            background: rgba(30, 40, 55, 0.5);
+            padding: 1px;
             overflow: hidden;
         }
         .panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #1a1e26;
+            background: rgba(15, 25, 35, 0.7);
+            backdrop-filter: blur(8px);
             overflow: hidden;
         }
         .panel-header {
-            background: #131720;
-            padding: 6px 12px;
-            font-size: 0.75rem;
+            background: rgba(10, 20, 35, 0.6);
+            padding: 8px 12px;
+            font-size: 0.8rem;
             font-weight: bold;
-            border-bottom: 1px solid #2c313c;
+            border-bottom: 1px solid rgba(100, 150, 200, 0.3);
+            color: #b0d4ff;
         }
         .CodeMirror {
             height: 100% !important;
+            background: rgba(10, 20, 35, 0.4) !important;
             font-size: 13px;
         }
         .output-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #1a1e26;
+            background: rgba(15, 25, 35, 0.7);
         }
         iframe {
             flex: 1;
@@ -119,54 +159,52 @@
         }
         footer {
             text-align: center;
-            padding: 6px;
-            font-size: 0.65rem;
-            color: #6c727f;
-            border-top: 1px solid #2c313c;
-            background: #131720;
+            padding: 8px;
+            font-size: 0.7rem;
+            color: #6c8eb0;
+            border-top: 1px solid rgba(100, 150, 200, 0.2);
+            background: rgba(10, 20, 35, 0.5);
         }
         @media (max-width: 800px) {
             .editor-container {
                 flex-direction: column;
             }
             .panel {
-                height: 30vh;
+                min-height: 30vh;
             }
         }
     </style>
 </head>
 <body>
-<div class="toolbar">
-    <div class="logo">
-        <h1>⚡ TSandCode</h1>
-        <p>песочница кода — html / css / js</p>
+<div class="snow" id="snow"></div>
+<div class="app">
+    <div class="toolbar">
+        <div class="logo">
+            <h1>❄️ TSandCode</h1>
+            <p>зимняя песочница кода — html / css / js</p>
+        </div>
+        <div class="controls">
+            <select id="modeSelect">
+                <option value="split">❄️ Раздельный режим (HTML/CSS/JS)</option>
+                <option value="unified">📄 Единый режим (всё в одном окне)</option>
+            </select>
+            <button id="runBtn">▶ Запустить</button>
+            <a href="https://github.com/web-pentest" target="_blank" class="github-link">🐙 web-pentest</a>
+        </div>
     </div>
-    <div class="controls">
-        <select id="modeSelect">
-            <option value="split">Раздельный режим (HTML/CSS/JS)</option>
-            <option value="unified">Единый режим (всё в одном окне)</option>
-        </select>
-        <button id="runBtn">▶ Запустить</button>
-        <a href="https://github.com/web-pentest" target="_blank" class="github-link">🐙 web-pentest</a>
-    </div>
+    <div id="editorContainer" class="editor-container"></div>
+    <footer>🔥 TSandCode — создай свой код в зимней атмосфере | 🐙 <a href="https://github.com/web-pentest" target="_blank" style="color:#b0d4ff;">github.com/web-pentest</a></footer>
 </div>
-<div id="editorContainer" class="editor-container"></div>
-<footer>
-    🔥 TSandCode — создай свой код прямо в браузере | 🐙 <a href="https://github.com/web-pentest" target="_blank" style="color:#b0b0b0;">github.com/web-pentest</a>
-</footer>
 
 <script>
-    // Состояние
     let currentMode = 'split';
-    let editors = {};
+    let editors = { html: null, css: null, js: null };
     let unifiedEditor = null;
     
-    // DOM
     const container = document.getElementById('editorContainer');
     const modeSelect = document.getElementById('modeSelect');
     const runBtn = document.getElementById('runBtn');
     
-    // Загрузка/сохранение
     function saveCode() {
         if (currentMode === 'split') {
             localStorage.setItem('tsandcode_html', editors.html?.getValue() || '');
@@ -178,34 +216,34 @@
         localStorage.setItem('tsandcode_mode', currentMode);
     }
     
-    function getDefaultCode(mode) {
-        if (mode === 'split') {
-            return {
-                html: '<h1>✨ Добро пожаловать в TSandCode!</h1>\n<p>Пиши код в панелях →</p>',
-                css: 'body { font-family: system-ui; padding: 20px; }\nh1 { color: #b0b0b0; }',
-                js: 'console.log("TSandCode готов к работе!");\ndocument.querySelector("h1").style.color = "#89b4fa";'
-            };
-        } else {
-            return `<!DOCTYPE html>
+    function getDefaultSplit() {
+        return {
+            html: '<h1>❄️ Добро пожаловать в TSandCode!</h1>\n<p>Пиши код в панелях →</p>',
+            css: 'body { font-family: system-ui; padding: 20px; background: #0a1a2e; color: white; }\nh1 { color: #80b0ff; }',
+            js: 'console.log("TSandCode готов к работе!");\ndocument.querySelector("h1").style.color = "#b0d4ff";'
+        };
+    }
+    
+    function getDefaultUnified() {
+        return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>TSandCode</title>
     <style>
-        body { font-family: system-ui; padding: 20px; }
-        h1 { color: #b0b0b0; }
+        body { font-family: system-ui; padding: 20px; background: #0a1a2e; color: white; }
+        h1 { color: #80b0ff; }
     </style>
 </head>
 <body>
-    <h1>✨ Добро пожаловать в TSandCode!</h1>
+    <h1>❄️ Добро пожаловать в TSandCode!</h1>
     <p>Пиши код в одном окне →</p>
     <script>
         console.log("TSandCode готов к работе!");
-        document.querySelector("h1").style.color = "#89b4fa";
+        document.querySelector("h1").style.color = "#b0d4ff";
     <\/script>
 </body>
 </html>`;
-        }
     }
     
     function loadCode() {
@@ -214,18 +252,16 @@
         modeSelect.value = currentMode;
         
         if (currentMode === 'split') {
-            const defaultCodes = getDefaultCode('split');
-            editors.html.setValue(localStorage.getItem('tsandcode_html') || defaultCodes.html);
-            editors.css.setValue(localStorage.getItem('tsandcode_css') || defaultCodes.css);
-            editors.js.setValue(localStorage.getItem('tsandcode_js') || defaultCodes.js);
+            const def = getDefaultSplit();
+            editors.html.setValue(localStorage.getItem('tsandcode_html') || def.html);
+            editors.css.setValue(localStorage.getItem('tsandcode_css') || def.css);
+            editors.js.setValue(localStorage.getItem('tsandcode_js') || def.js);
         } else {
-            const defaultUnified = getDefaultCode('unified');
-            unifiedEditor.setValue(localStorage.getItem('tsandcode_unified') || defaultUnified);
+            unifiedEditor.setValue(localStorage.getItem('tsandcode_unified') || getDefaultUnified());
         }
     }
     
-    // Рендер редакторов
-    function renderSplitMode() {
+    function renderSplit() {
         container.innerHTML = `
             <div class="panel"><div class="panel-header">📄 HTML</div><textarea id="htmlEditor"></textarea></div>
             <div class="panel"><div class="panel-header">🎨 CSS</div><textarea id="cssEditor"></textarea></div>
@@ -243,27 +279,27 @@
         });
     }
     
-    function renderUnifiedMode() {
+    function renderUnified() {
         container.innerHTML = `
             <div class="panel"><div class="panel-header">📄 Единый код (HTML/CSS/JS)</div><textarea id="unifiedEditor"></textarea></div>
             <div class="output-panel"><div class="panel-header">🖥️ Результат</div><iframe id="output"></iframe></div>
         `;
         unifiedEditor = CodeMirror.fromTextArea(document.getElementById('unifiedEditor'), {
-            lineNumbers: true, mode: "htmlmixed", theme: "material-darker", lineWinding: true
+            lineNumbers: true, mode: "htmlmixed", theme: "material-darker", lineWrapping: true
         });
     }
     
     function render() {
         if (currentMode === 'split') {
-            renderSplitMode();
+            renderSplit();
         } else {
-            renderUnifiedMode();
+            renderUnified();
         }
         loadCode();
-        attachRunEvent();
+        attachRun();
     }
     
-    function attachRunEvent() {
+    function attachRun() {
         const output = document.getElementById('output');
         const run = () => {
             if (currentMode === 'split') {
@@ -281,7 +317,6 @@
             saveCode();
         };
         runBtn.onclick = run;
-        // авторан с задержкой
         let timeout;
         const auto = () => { clearTimeout(timeout); timeout = setTimeout(run, 700); };
         if (currentMode === 'split') {
@@ -298,6 +333,20 @@
         currentMode = modeSelect.value;
         render();
     });
+    
+    // снежинки
+    function createSnow() {
+        const snowDiv = document.getElementById('snow');
+        for (let i = 0; i < 80; i++) {
+            const flake = document.createElement('i');
+            flake.style.left = Math.random() * 100 + '%';
+            flake.style.width = flake.style.height = Math.random() * 5 + 2 + 'px';
+            flake.style.animationDuration = Math.random() * 4 + 3 + 's';
+            flake.style.animationDelay = Math.random() * 5 + 's';
+            snowDiv.appendChild(flake);
+        }
+    }
+    createSnow();
     
     render();
 </script>
